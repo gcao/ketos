@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::{stderr, Read, Write};
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
+use std::time::Instant;
 
 use crate::bytecode::Code;
 use crate::compile::compile;
@@ -420,7 +421,10 @@ impl Interpreter {
     /// Parses and executes a series of expressions and return the last value.
     pub fn run_code(&self, input: &str, path: Option<String>) -> Result<Value, Error> {
         let code = self.compile_code(input, path)?;
-        self.execute_program(code)
+        let start_time = Instant::now();
+        let result = self.execute_program(code);
+        println!("Execution time: {:.6} seconds", start_time.elapsed().as_nanos() as f64 / 1_000_000_000.);
+        result
     }
 
     /// Compiles and compiles a single expression and returns a code object.
