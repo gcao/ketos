@@ -587,6 +587,18 @@ mod test {
     }
 
     #[test]
+    fn test_basic() {
+        assert_eq!(
+            parse("true").unwrap(),
+            Value::Bool(true)
+        );
+        assert_eq!(
+            parse("1.1").unwrap(),
+            Value::Float(1.1)
+        );
+    }
+
+    #[test]
     fn test_doc_errors() {
         assert_eq!(parse(";; foo\n(const)").unwrap_err(), ParseError{
             span: Span{lo: 0, hi: 7}, kind: ParseErrorKind::CannotDocumentItem});

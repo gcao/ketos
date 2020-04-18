@@ -9,6 +9,7 @@ use std::mem::replace;
 use std::path::{Path, PathBuf};
 use std::rc::Rc;
 
+use float_cmp::ApproxEq;
 use crate::bytes::Bytes;
 use crate::error::Error;
 use crate::exec::{Context, ExecError};
@@ -68,6 +69,20 @@ pub enum Value {
     /// Boxed value of a foreign type
     Foreign(Rc<dyn ForeignValue>),
 }
+
+impl PartialEq for Value {
+    fn eq(&self, rhs: &Value) -> bool {
+        use Value::*;
+
+        match(self, rhs) {
+            (Bool(ref a), Bool(ref b)) => a == b,
+            (Float(ref a), Float(ref b)) => a.approx_eq(*b, (0.0, 2)),
+            _ => false
+        }
+    }
+}
+
+impl Eq for Value {}
 
 impl Value {
     /// Returns a value of a foreign type.
