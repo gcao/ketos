@@ -11,7 +11,7 @@ use num::{FromPrimitive, ToPrimitive, Integer as NumInteger, Signed, Num, Zero, 
 
 /// Arbitrary precision signed integer
 #[derive(Clone, Debug, Default, Eq, PartialEq, Ord, PartialOrd)]
-pub struct Integer(BigInt);
+pub struct Integer(pub BigInt);
 
 /// Arbitrary precision signed integer ratio
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]

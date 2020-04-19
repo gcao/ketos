@@ -9,6 +9,10 @@ use crate::string;
 /// Represents a single unit of code input.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Token<'lex> {
+    /// `[`
+    LeftBracket,
+    /// `]`
+    RightBracket,
     /// Left parenthesis `(`
     LeftParen,
     /// Right parenthesis `)`
@@ -52,6 +56,8 @@ impl<'lex> Token<'lex> {
     /// Returns a human-readable name of a token.
     pub fn name(&self) -> &'static str {
         match *self {
+            Token::LeftBracket => "[",
+            Token::RightBracket => "]",
             Token::LeftParen => "(",
             Token::RightParen => ")",
             Token::DocComment(_) => "doc-comment",
@@ -254,6 +260,8 @@ impl<'lex> Lexer<'lex> {
             let lo = self.cur_pos;
 
             let res = match ch {
+                '[' => Ok((Token::LeftBracket, 1)),
+                ']' => Ok((Token::RightBracket, 1)),
                 '(' => Ok((Token::LeftParen, 1)),
                 ')' => Ok((Token::RightParen, 1)),
                 '\'' => Ok((Token::Quote, 1)),

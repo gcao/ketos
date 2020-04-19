@@ -14,6 +14,7 @@ use crate::name::{get_standard_name_for, standard_names, Name, NameDisplay, Name
 use crate::restrict::RestrictError;
 use crate::string;
 use crate::value::Value;
+use crate::rc_vec::RcVec;
 
 const MODULE_DOC_COMMENT: &str = ";;;";
 
@@ -89,6 +90,8 @@ pub enum ParseErrorKind {
     },
     /// Unrecognized character escape
     UnknownCharEscape(char),
+    /// Unmatched `]`
+    UnmatchedBracket,
     /// Unmatched `)`
     UnmatchedParen,
     /// Unterminated character constant
@@ -123,6 +126,7 @@ impl fmt::Display for ParseErrorKind {
                 write!(f, "expected {}; found {}", expected, found),
             ParseErrorKind::UnknownCharEscape(ch) =>
                 write!(f, "unknown char escape: {:?}", ch),
+            ParseErrorKind::UnmatchedBracket => f.write_str("unmatched `]`"),
             ParseErrorKind::UnmatchedParen => f.write_str("unmatched `)`"),
             ParseErrorKind::UnterminatedChar => f.write_str("unterminated char constant"),
             ParseErrorKind::UnterminatedComment => f.write_str("unterminated block comment"),
@@ -139,6 +143,8 @@ enum Group<'lex> {
     /// Number of quotes preceding group.
     /// If zero, this is an unquoted parentheses group.
     Quotes(u32),
+    /// Values in []
+    Bracket(Vec<Value>),
     /// Values in a parenthetical expression
     Parens(Vec<Value>, Option<(Span, &'lex str)>),
 }
@@ -178,6 +184,24 @@ impl<'a, 'lex> Parser<'a, 'lex> {
                 Token::DocComment(_) =>
                     return Err(From::from(ParseError::new(
                         doc.unwrap().0, ParseErrorKind::CannotDocumentItem))),
+                Token::LeftBracket => {
+                    stack.push(Group::Bracket(Vec::new()));
+                    continue;
+                }
+                Token::RightBracket => {
+                    let group = stack.pop().ok_or_else(
+                        || ParseError::new(sp, ParseErrorKind::UnmatchedBracket))?;
+
+                    match group {
+                        Group::Bracket(values) =>
+                            Ok(Value::Array(RcVec::new(values))),
+                        _ => Err(From::from(ParseError::new(sp,
+                            ParseErrorKind::UnexpectedToken{
+                                expected: "expression",
+                                found: "]",
+                            })))
+                    }
+                }
                 Token::LeftParen => {
                     if let Some((doc_sp, _)) = doc {
                         match self.peek()? {
@@ -300,6 +324,10 @@ impl<'a, 'lex> Parser<'a, 'lex> {
                 match stack.last_mut() {
                     None => return Ok(v),
                     Some(&mut Group::Parens(ref mut values, _)) => {
+                        values.push(v);
+                        break;
+                    }
+                    Some(&mut Group::Bracket(ref mut values)) => {
                         values.push(v);
                         break;
                     }
@@ -568,11 +596,13 @@ fn strip_underscores(s: &str) -> Cow<str> {
 
 #[cfg(test)]
 mod test {
+    use num::BigInt;
     use super::{ParseError, ParseErrorKind, Parser};
     use crate::error::Error;
     use crate::interpreter::Interpreter;
     use crate::lexer::{Span, Lexer};
     use crate::value::Value;
+    use crate::rc_vec::RcVec;
 
     fn parse(s: &str) -> Result<Value, ParseError> {
         let interp = Interpreter::new();
@@ -595,6 +625,14 @@ mod test {
         assert_eq!(
             parse("1.1").unwrap(),
             Value::Float(1.1)
+        );
+        assert_eq!(
+            parse("[]").unwrap(),
+            Value::Array(RcVec::new(vec![]))
+        );
+        assert_eq!(
+            parse("[1]").unwrap(),
+            Value::Array(RcVec::new(vec![vint!(1)]))
         );
     }
 

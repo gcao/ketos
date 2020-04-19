@@ -60,6 +60,7 @@ pub use crate::value::{ForeignValue, FromValue, FromValueRef, Value};
 #[cfg(feature = "serde")] pub use value_encode::encode_value;
 
 #[macro_use] pub mod any;
+#[macro_use] pub mod macros;
 pub mod args;
 pub mod bytecode;
 pub mod bytes;

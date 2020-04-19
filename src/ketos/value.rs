@@ -60,6 +60,8 @@ pub enum Value {
     /// Quoted value; quote depth **MUST NEVER be zero**.
     Quote(Box<Value>, u32),
     /// Series of one or more values.
+    Array(RcVec<Value>),
+    /// Series of one or more values.
     /// **MUST NEVER be of length zero.** Use `Unit` to represent empty lists.
     List(RcVec<Value>),
     /// Function implemented in Rust
@@ -75,8 +77,24 @@ impl PartialEq for Value {
         use Value::*;
 
         match(self, rhs) {
+            (Unit, Unit) => true,
+            (Unbound, Unbound) => true,
             (Bool(ref a), Bool(ref b)) => a == b,
             (Float(ref a), Float(ref b)) => a.approx_eq(*b, (0.0, 2)),
+            (Integer(ref a), Integer(ref b)) => a == b,
+            (Ratio(ref a), Ratio(ref b)) => a == b,
+            (Name(ref a), Name(ref b)) => a == b,
+            (Keyword(ref a), Keyword(ref b)) => a == b,
+            (Char(ref a), Char(ref b)) => a == b,
+            (String(ref a), String(ref b)) => a == b,
+            (Bytes(ref a), Bytes(ref b)) => a == b,
+            (Path(ref a), Path(ref b)) => a == b,
+            (Array(ref a), Array(ref b)) => a == b,
+            (List(ref a), List(ref b)) => a == b,
+            // (StructDef(ref a), StructDef(ref b)) => a == b,
+            // (Struct(ref a), Struct(ref b)) => a == b,
+            // (Function(ref a), Function(ref b)) => a == b,
+            // (Lambda(ref a), Lambda(ref b)) => a == b,
             _ => false
         }
     }
@@ -391,6 +409,7 @@ impl Value {
             Value::Comma(_, _) |
             Value::CommaAt(_, _) |
             Value::Quote(_, _) => "object",
+            Value::Array(_) => "array",
             Value::List(_) => "list",
             Value::Struct(_) => "struct",
             Value::StructDef(_) => "struct-def",
@@ -661,6 +680,22 @@ impl NameDebug for Value {
             Value::Quote(ref v, depth) => {
                 for _ in 0..depth { write!(f, "'")?; }
                 NameDebug::fmt(v, names, f)
+            }
+            Value::Array(ref l) => {
+                write!(f, "[")?;
+
+                let mut iter = l.iter();
+
+                if let Some(v) = iter.next() {
+                    NameDebug::fmt(v, names, f)?;
+                }
+
+                for v in iter {
+                    write!(f, " ")?;
+                    NameDebug::fmt(v, names, f)?;
+                }
+
+                write!(f, "]")
             }
             Value::List(ref l) => {
                 write!(f, "(")?;
