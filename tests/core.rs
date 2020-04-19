@@ -28,12 +28,12 @@ fn run(s: &str) -> Result<Vec<String>, Error> {
         .map(|v| interp.format_value(&v))).collect()
 }
 
-fn run_one(s: &str) -> String {
-    let interp = Interpreter::new();
+// fn run_one(s: &str) -> String {
+//     let interp = Interpreter::new();
 
-    let c = interp.compile_single_expr(s, None).unwrap();
-    interp.format_value(&interp.execute(c).unwrap())
-}
+//     let c = interp.compile_single_expr(s, None).unwrap();
+//     interp.format_value(&interp.execute(c).unwrap())
+// }
 
 #[test]
 fn test_const() {

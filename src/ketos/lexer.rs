@@ -17,6 +17,8 @@ pub enum Token<'lex> {
     LeftBrace,
     /// `}`
     RightBrace,
+    /// `^`
+    MapKey,
     /// Left parenthesis `(`
     LeftParen,
     /// Right parenthesis `)`
@@ -64,6 +66,7 @@ impl<'lex> Token<'lex> {
             Token::RightBracket => "]",
             Token::LeftBrace => "{",
             Token::RightBrace => "}",
+            Token::MapKey => "^",
             Token::LeftParen => "(",
             Token::RightParen => ")",
             Token::DocComment(_) => "doc-comment",
@@ -270,6 +273,7 @@ impl<'lex> Lexer<'lex> {
                 ']' => Ok((Token::RightBracket, 1)),
                 '{' => Ok((Token::LeftBrace, 1)),
                 '}' => Ok((Token::RightBrace, 1)),
+                '^' => Ok((Token::MapKey, 1)),
                 '(' => Ok((Token::LeftParen, 1)),
                 ')' => Ok((Token::RightParen, 1)),
                 '\'' => Ok((Token::Quote, 1)),

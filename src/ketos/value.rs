@@ -705,7 +705,7 @@ impl NameDebug for Value {
             Value::Map(ref map) => {
                 write!(f, "{{")?;
 
-                for (k, v) in map {
+                for (_k, v) in map {
                     // TODO
                     // write!(f, "^")?;
                     // NameDebug::fmt(k, names, f)?;

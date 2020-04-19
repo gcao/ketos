@@ -222,6 +222,13 @@ impl<'a, 'lex> Parser<'a, 'lex> {
                             })))
                     }
                 }
+                Token::MapKey => {
+                    // TODO: expect one of three cases
+                    // 1. key value
+                    // 2. ^key
+                    // 3. !key
+                    continue;
+                }
                 Token::LeftParen => {
                     if let Some((doc_sp, _)) = doc {
                         match self.peek()? {
@@ -656,6 +663,14 @@ mod test {
             parse("[1]").unwrap(),
             Value::Array(RcVec::new(vec![vint!(1)]))
         );
+        assert_eq!(
+            parse("{}").unwrap(),
+            Value::Map(HashMap::new())
+        );
+    }
+
+    #[test]
+    fn test_map() {
         assert_eq!(
             parse("{}").unwrap(),
             Value::Map(HashMap::new())

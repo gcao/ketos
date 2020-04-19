@@ -19,10 +19,6 @@ name = "ketos"
 path = "src/bin/repl.rs"
 doc = false
 
-[[bin]]
-name = "fibonacci"
-path = "examples/fibonacci.rs"
-
 [lib]
 name = "ketos"
 path = "src/ketos/lib.rs"
