@@ -1,6 +1,7 @@
 //! Represents any possible value type.
 
 use std::any::Any;
+use std::collections::HashMap;
 use std::cmp::Ordering;
 use std::f64::{INFINITY, NEG_INFINITY};
 use std::ffi::{OsStr, OsString};
@@ -61,6 +62,8 @@ pub enum Value {
     Quote(Box<Value>, u32),
     /// Series of one or more values.
     Array(RcVec<Value>),
+    /// Map
+    Map(HashMap<String, Value>),
     /// Series of one or more values.
     /// **MUST NEVER be of length zero.** Use `Unit` to represent empty lists.
     List(RcVec<Value>),
@@ -90,6 +93,7 @@ impl PartialEq for Value {
             (Bytes(ref a), Bytes(ref b)) => a == b,
             (Path(ref a), Path(ref b)) => a == b,
             (Array(ref a), Array(ref b)) => a == b,
+            (Map(ref a), Map(ref b)) => a == b,
             (List(ref a), List(ref b)) => a == b,
             // (StructDef(ref a), StructDef(ref b)) => a == b,
             // (Struct(ref a), Struct(ref b)) => a == b,
@@ -410,6 +414,7 @@ impl Value {
             Value::CommaAt(_, _) |
             Value::Quote(_, _) => "object",
             Value::Array(_) => "array",
+            Value::Map(_) => "map",
             Value::List(_) => "list",
             Value::Struct(_) => "struct",
             Value::StructDef(_) => "struct-def",
@@ -696,6 +701,19 @@ impl NameDebug for Value {
                 }
 
                 write!(f, "]")
+            }
+            Value::Map(ref map) => {
+                write!(f, "{{")?;
+
+                for (k, v) in map {
+                    // TODO
+                    // write!(f, "^")?;
+                    // NameDebug::fmt(k, names, f)?;
+                    // write!(f, " ")?;
+                    NameDebug::fmt(v, names, f)?;
+                }
+
+                write!(f, "}}")
             }
             Value::List(ref l) => {
                 write!(f, "(")?;

@@ -227,6 +227,7 @@ standard_names!{
     "function" => FUNCTION = 106,
     "self" => SELF = 107,
     "array" => ARRAY = 108,
+    "map" => MAP = 109,
 }
 
 /// Number of standard names

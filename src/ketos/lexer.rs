@@ -13,6 +13,10 @@ pub enum Token<'lex> {
     LeftBracket,
     /// `]`
     RightBracket,
+    /// `{`
+    LeftBrace,
+    /// `}`
+    RightBrace,
     /// Left parenthesis `(`
     LeftParen,
     /// Right parenthesis `)`
@@ -58,6 +62,8 @@ impl<'lex> Token<'lex> {
         match *self {
             Token::LeftBracket => "[",
             Token::RightBracket => "]",
+            Token::LeftBrace => "{",
+            Token::RightBrace => "}",
             Token::LeftParen => "(",
             Token::RightParen => ")",
             Token::DocComment(_) => "doc-comment",
@@ -262,6 +268,8 @@ impl<'lex> Lexer<'lex> {
             let res = match ch {
                 '[' => Ok((Token::LeftBracket, 1)),
                 ']' => Ok((Token::RightBracket, 1)),
+                '{' => Ok((Token::LeftBrace, 1)),
+                '}' => Ok((Token::RightBrace, 1)),
                 '(' => Ok((Token::LeftParen, 1)),
                 ')' => Ok((Token::RightParen, 1)),
                 '\'' => Ok((Token::Quote, 1)),

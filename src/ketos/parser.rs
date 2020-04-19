@@ -145,6 +145,8 @@ enum Group<'lex> {
     Quotes(u32),
     /// Values in []
     Bracket(Vec<Value>),
+    /// Values in {}
+    Brace(HashMap<String, Value>),
     /// Values in a parenthetical expression
     Parens(Vec<Value>, Option<(Span, &'lex str)>),
 }
@@ -199,6 +201,24 @@ impl<'a, 'lex> Parser<'a, 'lex> {
                             ParseErrorKind::UnexpectedToken{
                                 expected: "expression",
                                 found: "]",
+                            })))
+                    }
+                }
+                Token::LeftBrace => {
+                    stack.push(Group::Brace(HashMap::new()));
+                    continue;
+                }
+                Token::RightBrace => {
+                    let group = stack.pop().ok_or_else(
+                        || ParseError::new(sp, ParseErrorKind::UnmatchedBracket))?;
+
+                    match group {
+                        Group::Brace(values) =>
+                            Ok(Value::Map(values)),
+                        _ => Err(From::from(ParseError::new(sp,
+                            ParseErrorKind::UnexpectedToken{
+                                expected: "expression",
+                                found: "}",
                             })))
                     }
                 }
@@ -596,9 +616,11 @@ fn strip_underscores(s: &str) -> Cow<str> {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashMap;
     use num::BigInt;
     use super::{ParseError, ParseErrorKind, Parser};
     use crate::error::Error;
+    use crate::integer::Integer;
     use crate::interpreter::Interpreter;
     use crate::lexer::{Span, Lexer};
     use crate::value::Value;
@@ -633,6 +655,10 @@ mod test {
         assert_eq!(
             parse("[1]").unwrap(),
             Value::Array(RcVec::new(vec![vint!(1)]))
+        );
+        assert_eq!(
+            parse("{}").unwrap(),
+            Value::Map(HashMap::new())
         );
     }
 

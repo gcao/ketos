@@ -1270,6 +1270,7 @@ fn type_of(scope: &Scope, v: &Value) -> Name {
         Value::Bytes(_) => BYTES,
         Value::Path(_) => PATH,
         Value::Array(_) => ARRAY,
+        Value::Map(_) => MAP,
         Value::List(_) => LIST,
         Value::Function(_) => FUNCTION,
         Value::Lambda(_) => LAMBDA,
