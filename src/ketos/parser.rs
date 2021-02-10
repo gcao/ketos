@@ -92,6 +92,8 @@ pub enum ParseErrorKind {
     UnknownCharEscape(char),
     /// Unmatched `]`
     UnmatchedBracket,
+    /// Unmatched `}`
+    UnmatchedBrace,
     /// Unmatched `)`
     UnmatchedParen,
     /// Unterminated character constant
@@ -127,6 +129,7 @@ impl fmt::Display for ParseErrorKind {
             ParseErrorKind::UnknownCharEscape(ch) =>
                 write!(f, "unknown char escape: {:?}", ch),
             ParseErrorKind::UnmatchedBracket => f.write_str("unmatched `]`"),
+            ParseErrorKind::UnmatchedBrace => f.write_str("unmatched `}`"),
             ParseErrorKind::UnmatchedParen => f.write_str("unmatched `)`"),
             ParseErrorKind::UnterminatedChar => f.write_str("unterminated char constant"),
             ParseErrorKind::UnterminatedComment => f.write_str("unterminated block comment"),
@@ -210,7 +213,7 @@ impl<'a, 'lex> Parser<'a, 'lex> {
                 }
                 Token::RightBrace => {
                     let group = stack.pop().ok_or_else(
-                        || ParseError::new(sp, ParseErrorKind::UnmatchedBracket))?;
+                        || ParseError::new(sp, ParseErrorKind::UnmatchedBrace))?;
 
                     match group {
                         Group::Brace(values) =>
@@ -643,6 +646,14 @@ mod test {
                 _ => panic!("parse returned error: {:?}", e)
             }
         })
+    }
+
+    #[test]
+    fn test_wip() {
+        assert_eq!(
+            parse("{^a true}").unwrap(),
+            Value::Map(map!(a: Value::Bool(true)))
+        );
     }
 
     #[test]
